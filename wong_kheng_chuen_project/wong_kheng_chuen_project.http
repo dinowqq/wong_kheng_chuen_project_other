@@ -1,0 +1,6 @@
+@wong_kheng_chuen_project_HostAddress = http://localhost:5011
+
+GET {{wong_kheng_chuen_project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
