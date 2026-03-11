@@ -44,7 +44,12 @@ namespace wong_kheng_chuen_project.Controllers
         // User = only own bookings
         [HttpGet("bookings")]
         [Authorize(Roles = UserRoles.Admin + "," + UserRoles.User)]
-        public IActionResult GetBookings(string? sortBy = null)
+        public IActionResult GetBookings(
+            string? sortBy = null,
+            string? facility = null,
+            bool? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null)
         {
             var username = CurrentUsername;
             if (string.IsNullOrWhiteSpace(username))
@@ -55,11 +60,37 @@ namespace wong_kheng_chuen_project.Controllers
 
             IQueryable<facility> query = _context.facility;
 
+            // User can only view their own bookings
             if (!IsAdmin)
             {
                 query = query.Where(f => f.Booked_By == username);
             }
 
+            // Filter by facility name
+            if (!string.IsNullOrWhiteSpace(facility))
+            {
+                query = query.Where(f => f.Facility_Description != null &&
+                                         f.Facility_Description.Contains(facility));
+            }
+
+            // Filter by booking status
+            if (status.HasValue)
+            {
+                query = query.Where(f => f.Booking_Status == status.Value);
+            }
+
+            // Filter by date range
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(f => f.Booking_Date_From >= dateFrom.Value);
+            }
+
+            if (dateTo.HasValue)
+            {
+                query = query.Where(f => f.Booking_Date_To <= dateTo.Value);
+            }
+
+            // Sorting
             query = sortBy?.ToLower() switch
             {
                 "dateasc" => query.OrderBy(f => f.Booking_Date_From),
